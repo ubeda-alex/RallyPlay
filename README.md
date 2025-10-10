@@ -1,4 +1,4 @@
-# SwitchPlay
+# RallyPlay
 
 SwitchPlay es una herramienta web de código abierto para organizar y controlar juegos de estaciones en eventos. Permite gestionar el tiempo, cambiar de estación de manera ordenada y controlar el progreso de los participantes, todo desde cualquier navegador y dispositivo de manera local.
 
