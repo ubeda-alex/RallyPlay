@@ -2,7 +2,7 @@ import os
 import random
 import time
 import threading
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import pygame
 import sys
 import logging
@@ -24,9 +24,55 @@ test_duration_minutes = 6  # Cambia a 10 para la duración real o cualquier valo
 
 app = Flask(__name__)
 
+# Configuración del juego y puntuaciones
+TEAM_COLORS = ["Rojo", "Azul", "Blanco", "Negro", "Verde", "Morado"]
+STATION_NAMES = [f"Estación {i}" for i in range(1, 7)]
+
 # Estado global del juego
 game_state = "espera"  # Puede ser "espera", "en_juego" o "terminado"
 game_thread = None  # Hilo para la secuencia de música
+
+score_lock = threading.Lock()
+teams = {color: {"score": 0, "history": []} for color in TEAM_COLORS}
+station_assignments = {station: None for station in STATION_NAMES}
+score_events = []
+
+
+def reset_game_data():
+    """Restablece puntajes, asignaciones e historial."""
+    with score_lock:
+        for color in TEAM_COLORS:
+            teams[color]["score"] = 0
+            teams[color]["history"] = []
+        for station in station_assignments:
+            station_assignments[station] = None
+        score_events.clear()
+
+
+def get_standings():
+    ordered = sorted(
+        (
+            {
+                "team": team,
+                "score": info["score"],
+                "history": list(info["history"]),
+            }
+            for team, info in teams.items()
+        ),
+        key=lambda item: item["score"],
+        reverse=True,
+    )
+    return ordered
+
+
+def serialize_state():
+    with score_lock:
+        return {
+            "status": game_state,
+            "assignments": dict(station_assignments),
+            "standings": get_standings(),
+            "events": list(score_events[-10:]),
+        }
 
 # Configurar para evitar que Flask imprima logs en consola
 log = logging.getLogger('werkzeug')
@@ -98,6 +144,72 @@ def end_game_audio():
 def index():
     return render_template("index.html")
 
+
+@app.route("/state")
+def state():
+    return jsonify(serialize_state())
+
+
+@app.route("/assign_station", methods=["POST"])
+def assign_station():
+    data = request.get_json(silent=True) or {}
+    station = data.get("station")
+    team = data.get("team")
+
+    if station not in station_assignments:
+        return jsonify({"error": "Estación inválida"}), 400
+    if team not in teams:
+        return jsonify({"error": "Equipo inválido"}), 400
+
+    with score_lock:
+        for key, assigned_team in station_assignments.items():
+            if assigned_team == team:
+                station_assignments[key] = None
+        station_assignments[station] = team
+
+    return jsonify({"message": "Asignación actualizada", "state": serialize_state()})
+
+
+@app.route("/submit_score", methods=["POST"])
+def submit_score():
+    data = request.get_json(silent=True) or {}
+    station = data.get("station")
+    team = data.get("team")
+    score = data.get("score")
+
+    if station not in station_assignments:
+        return jsonify({"error": "Estación inválida"}), 400
+    if team not in teams:
+        return jsonify({"error": "Equipo inválido"}), 400
+
+    try:
+        score_value = int(score)
+    except (TypeError, ValueError):
+        return jsonify({"error": "El puntaje debe ser un número entero"}), 400
+
+    if score_value < 0:
+        return jsonify({"error": "El puntaje no puede ser negativo"}), 400
+
+    with score_lock:
+        current_team = station_assignments.get(station)
+        if current_team != team:
+            return jsonify({"error": "El equipo no coincide con la asignación actual"}), 400
+
+        teams[team]["score"] += score_value
+        teams[team]["history"].append({"station": station, "score": score_value})
+        score_events.append(
+            {
+                "team": team,
+                "station": station,
+                "score": score_value,
+                "total": teams[team]["score"],
+                "timestamp": time.strftime("%H:%M:%S"),
+            }
+        )
+
+    return jsonify({"message": "Puntaje registrado", "state": serialize_state()})
+
+
 @app.route("/play_waiting")
 def play_waiting():
     global game_state
@@ -107,7 +219,7 @@ def play_waiting():
         game_state = "espera"
         clear_console()
         print("          🎵 El juego está en espera 🎵")
-        return jsonify({"status": "En Espera"})
+        return jsonify({"status": "En Espera", "state": serialize_state()})
     else:
         return jsonify({"status": "El juego está en curso, no se puede poner en espera ahora."})
 
@@ -120,12 +232,13 @@ def start_game():
         time.sleep(0.5)
 
         clear_console()
-        
+
         print("          🏁 ¡El juego ha comenzado! 🏁\n")
+        reset_game_data()
         game_state = "en_juego"
         game_thread = threading.Thread(target=play_music_sequence, args=(test_duration_minutes,))
         game_thread.start()
-        return jsonify({"status": "En Juego"})
+        return jsonify({"status": "En Juego", "state": serialize_state()})
     else:
         return jsonify({"status": "Ya está en juego o terminado"})
 
@@ -138,9 +251,9 @@ def end_game():
             game_thread.join()
         threading.Thread(target=end_game_audio).start()
         clear_console()
-        
+
         print("           🚩 El juego ha terminado 🚩\n")
-        return jsonify({"status": "Juego Terminado"})
+        return jsonify({"status": "Juego Terminado", "state": serialize_state()})
     else:
         return jsonify({"status": "El juego no está en curso"})
 

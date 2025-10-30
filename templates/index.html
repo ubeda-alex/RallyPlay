@@ -1,196 +1,895 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rally de Confirma</title>
     <style>
+        :root {
+            --primary: #38b6ff;
+            --secondary: #6c5ce7;
+            --accent: #ff7a59;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --success: #2dd4bf;
+            --danger: #ff6b6b;
+        }
 
-        /* Reset de márgenes y bordes */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        /* Fondo general con degradado */
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #80e0f5, #4d94b0); /* Degradado celeste */
-            color: #333;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at 20% 20%, rgba(56, 182, 255, 0.35), transparent 55%),
+                        radial-gradient(circle at 80% 30%, rgba(108, 92, 231, 0.35), transparent 60%),
+                        linear-gradient(135deg, #0b1f3a, #07111f 65%, #020509);
+            color: var(--light);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            padding: 0 20px;
+            padding: 24px;
+            gap: 24px;
         }
 
-        /* Título de la página */
+        header {
+            text-align: center;
+            position: relative;
+        }
+
         h1 {
-            font-size: 36px;
-            color: #2c2c2c;
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: bold;
+            font-size: clamp(2.4rem, 4vw, 3.2rem);
             text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+            color: var(--light);
+            text-shadow: 0 0 18px rgba(56, 182, 255, 0.45);
+        }
+
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.8;
             letter-spacing: 2px;
-            padding: 15px;
-            background-color: rgba(255, 255, 255, 0.7);
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
-        /* Descripción del estado */
+        .status-wrapper {
+            margin: 20px auto 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+        }
+
         #status {
-            font-size: 18px;
-            margin: 20px;
-            color: #000000;
-            font-style: italic;
-            text-transform: capitalize;
+            background: linear-gradient(135deg, rgba(56, 182, 255, 0.2), rgba(108, 92, 231, 0.2));
+            border: 1px solid rgba(56, 182, 255, 0.45);
+            padding: 12px 24px;
+            border-radius: 999px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
         }
 
-        /* Temporizador */
         #timer {
-            font-size: 24px;
-            color: #4d4d4d;
-            font-weight: bold;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            padding: 12px 24px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 20px rgba(56, 182, 255, 0.15);
         }
 
-        /* Contenedor principal */
         .content-container {
-            background-color: #ffffff;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 600px;
-            margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 28px;
+            width: min(1200px, 100%);
+            margin: 0 auto;
         }
 
-        /* Botones principales */
-        .button-container {
+        .panel {
+            background: rgba(10, 22, 41, 0.86);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 28px 60px rgba(2, 8, 20, 0.45);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(56, 182, 255, 0.08);
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
+        }
+
+        .panel h2 {
+            font-size: 1.4rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--primary);
+        }
+
+        .stations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 18px;
+        }
+
+        .station-card {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(160deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.65));
+            border-radius: 18px;
+            padding: 18px;
+            border: 1px solid rgba(56, 182, 255, 0.15);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: transform 0.2s ease, box-shadow 0.3s ease;
+        }
+
+        .station-card::before {
+            content: "";
+            position: absolute;
+            inset: -60% -40% auto auto;
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle, rgba(56, 182, 255, 0.35), transparent 70%);
+            filter: blur(2px);
+            transition: transform 0.3s ease;
+        }
+
+        .station-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.45);
+        }
+
+        .station-card header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--light);
+            letter-spacing: 1px;
+        }
+
+        .current-team {
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+
+        label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.65;
+        }
+
+        select,
+        input[type="number"] {
+            background: rgba(15, 23, 42, 0.9);
+            color: var(--light);
+            border: 1px solid rgba(56, 182, 255, 0.35);
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            width: 100%;
+            outline: none;
+            transition: border 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        select:focus,
+        input[type="number"]:focus {
+            border-color: rgba(255, 122, 89, 0.75);
+            box-shadow: 0 0 0 3px rgba(255, 122, 89, 0.25);
+        }
+
+        .score-input {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
         }
 
         button {
-            background-color: #4c9baf;
-            color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            border-radius: 8px;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 1px;
             cursor: pointer;
-            transition: background-color 0.3s, transform 0.2s;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 400px;
-            margin: 10px 0;
+            transition: transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease;
+            color: var(--light);
+        }
+
+        .primary-btn {
+            background: linear-gradient(135deg, var(--primary), #1d9ff5);
+            box-shadow: 0 15px 30px rgba(56, 182, 255, 0.35);
+        }
+
+        .secondary-btn {
+            background: linear-gradient(135deg, var(--secondary), #4338ca);
+            box-shadow: 0 15px 30px rgba(108, 92, 231, 0.35);
+        }
+
+        .danger-btn {
+            background: linear-gradient(135deg, var(--danger), #ff4276);
+            box-shadow: 0 15px 30px rgba(255, 107, 107, 0.35);
         }
 
         button:hover {
-            background-color: #004b6e;
             transform: translateY(-3px);
         }
 
         button:active {
-            background-color: #1c3894;
-            transform: translateY(2px);
+            transform: translateY(0px) scale(0.98);
         }
 
-        /* Estilo para el contenedor de audio */
-        .audio-container {
-            margin-top: 20px;
+        .control-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
         }
 
-        /* Ajustes para pantallas pequeñas */
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 28px;
-                padding: 8px;
-            }
-
-            button {
-                font-size: 16px;
-                padding: 12px;
-            }
-
-            .content-container {
-                padding: 20px;
-            }
-        }
-
-        /* Fondo de los botones */
-        button:focus {
-            outline: none;
-        }
-
-        /* Estilo del texto con enlace */
-        .background-text {
-            position: absolute;
-            bottom: 20px;
-            text-align: center;
+        table {
             width: 100%;
-            font-size: 18px;
+            border-collapse: collapse;
+            border-radius: 16px;
+            overflow: hidden;
         }
 
-        .background-text a {
-            color: #ffffff;
+        thead {
+            background: rgba(56, 182, 255, 0.15);
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        tbody tr:hover {
+            background: rgba(56, 182, 255, 0.08);
+        }
+
+        .rank {
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .events {
+            background: rgba(8, 17, 35, 0.75);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(56, 182, 255, 0.12);
+            box-shadow: inset 0 0 40px rgba(8, 17, 35, 0.55);
+        }
+
+        .events h3 {
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+            color: var(--accent);
+        }
+
+        #event-feed {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #event-feed li {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            border: 1px solid rgba(56, 182, 255, 0.1);
+        }
+
+        #event-feed span {
+            opacity: 0.75;
+            font-size: 0.8rem;
+        }
+
+        .feedback {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            min-width: 220px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            background: rgba(8, 17, 35, 0.95);
+            border: 1px solid rgba(56, 182, 255, 0.25);
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
+            opacity: 0;
+            transform: translateY(-12px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            z-index: 50;
+        }
+
+        .feedback.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .feedback.success {
+            border-color: rgba(45, 212, 191, 0.5);
+            color: var(--success);
+        }
+
+        .feedback.error {
+            border-color: rgba(255, 107, 107, 0.5);
+            color: var(--danger);
+        }
+
+        .audio-container {
+            display: none;
+        }
+
+        .podium-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(1, 5, 12, 0.82);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+            z-index: 40;
+        }
+
+        .podium-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .podium-container {
+            max-width: 720px;
+            width: 90%;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.8));
+            padding: 36px;
+            border-radius: 26px;
+            border: 1px solid rgba(56, 182, 255, 0.2);
+            box-shadow: 0 35px 80px rgba(0, 0, 0, 0.55);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .podium-container::after {
+            content: "";
+            position: absolute;
+            inset: -120px -80px auto auto;
+            width: 240px;
+            height: 240px;
+            background: radial-gradient(circle, rgba(255, 122, 89, 0.35), transparent 70%);
+            filter: blur(2px);
+        }
+
+        .podium-title {
+            font-size: 2rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            color: var(--accent);
+        }
+
+        .podium {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            align-items: end;
+        }
+
+        .podium .place {
+            background: rgba(8, 17, 35, 0.9);
+            padding: 24px 18px;
+            border-radius: 18px 18px 8px 8px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+            position: relative;
+            animation: rise 0.9s ease forwards;
+            opacity: 0;
+        }
+
+        .podium .place:nth-child(1) { animation-delay: 0.3s; }
+        .podium .place:nth-child(2) { animation-delay: 0.1s; }
+        .podium .place:nth-child(3) { animation-delay: 0.5s; }
+
+        @keyframes rise {
+            from {
+                transform: translateY(40px) scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .place h3 {
+            font-size: 1.4rem;
+            margin-bottom: 12px;
+        }
+
+        .place span {
+            display: block;
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+
+        .close-podium {
+            margin-top: 24px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            color: var(--light);
+        }
+
+        .social-link {
+            margin-top: auto;
+            text-align: center;
+            font-size: 0.9rem;
+            opacity: 0.75;
+        }
+
+        .social-link a {
+            color: var(--primary);
             text-decoration: none;
-            font-weight: bold;
-            font-size: 18px;
-            transition: color 0.3s ease;
+            font-weight: 600;
         }
 
-        .background-text a:hover {
-            color: #ff00ea;
+        @media (max-width: 1024px) {
+            .content-container {
+                grid-template-columns: 1fr;
+            }
         }
 
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+
+            .stations-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+
+            .score-input {
+                grid-template-columns: 1fr;
+            }
+
+            .podium {
+                grid-template-columns: 1fr;
+            }
+
+            .podium .place {
+                border-radius: 18px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Rally de Confirma</h1>
-    
+    <header>
+        <h1>Rally de Confirma</h1>
+        <p class="tagline">Organiza, puntúa y celebra a los mejores equipos</p>
+        <div class="status-wrapper">
+            <p id="status">Estado: En espera</p>
+            <p id="timer">Tiempo: 00:00</p>
+        </div>
+        <div class="control-buttons">
+            <button class="primary-btn" onclick="controlSound('play_waiting')">🎶 Música de Espera</button>
+            <button class="secondary-btn" onclick="controlSound('start_game')">🎮 Iniciar Ronda</button>
+            <button class="danger-btn" onclick="controlSound('end_game')">🏁 Finalizar Juego</button>
+        </div>
+    </header>
+
     <div class="content-container">
-        <p id="status">Estado: En espera</p>
-        <p id="timer">Tiempo: 00:00</p> <!-- Temporizador aquí -->
-        
-        <div class="button-container">
-            <button onclick="controlSound('play_waiting')">
-                <span>🎶 Reproducir Música de Espera</span>
-            </button>
-            <button onclick="controlSound('start_game')">
-                <span>🎮 Iniciar Juego</span>
-            </button>
-            <button onclick="controlSound('end_game')">
-                <span>🏁 Finalizar Juego</span>
-            </button>
-        </div>
-        
-        <div class="audio-container">
-            <audio id="audioPlayer" preload="auto">
-                <source id="audioSource" type="audio/mp3">
-            </audio>
-        </div>
+        <section class="panel station-panel">
+            <h2>Control de Estaciones</h2>
+            <div class="stations-grid">
+                <article class="station-card" data-station="Estación 1">
+                    <header>Estación 1</header>
+                    <p class="current-team">Equipo actual: --</p>
+                    <label for="station-1-select">Seleccionar equipo</label>
+                    <select id="station-1-select" class="team-select"></select>
+                    <button class="primary-btn assign-btn">Asignar equipo</button>
+                    <label for="station-1-score">Agregar puntaje</label>
+                    <div class="score-input">
+                        <input id="station-1-score" class="score-value" type="number" min="0" placeholder="Ej: 10">
+                        <button class="secondary-btn score-btn">Sumar puntaje</button>
+                    </div>
+                </article>
+
+                <article class="station-card" data-station="Estación 2">
+                    <header>Estación 2</header>
+                    <p class="current-team">Equipo actual: --</p>
+                    <label for="station-2-select">Seleccionar equipo</label>
+                    <select id="station-2-select" class="team-select"></select>
+                    <button class="primary-btn assign-btn">Asignar equipo</button>
+                    <label for="station-2-score">Agregar puntaje</label>
+                    <div class="score-input">
+                        <input id="station-2-score" class="score-value" type="number" min="0" placeholder="Ej: 10">
+                        <button class="secondary-btn score-btn">Sumar puntaje</button>
+                    </div>
+                </article>
+
+                <article class="station-card" data-station="Estación 3">
+                    <header>Estación 3</header>
+                    <p class="current-team">Equipo actual: --</p>
+                    <label for="station-3-select">Seleccionar equipo</label>
+                    <select id="station-3-select" class="team-select"></select>
+                    <button class="primary-btn assign-btn">Asignar equipo</button>
+                    <label for="station-3-score">Agregar puntaje</label>
+                    <div class="score-input">
+                        <input id="station-3-score" class="score-value" type="number" min="0" placeholder="Ej: 10">
+                        <button class="secondary-btn score-btn">Sumar puntaje</button>
+                    </div>
+                </article>
+
+                <article class="station-card" data-station="Estación 4">
+                    <header>Estación 4</header>
+                    <p class="current-team">Equipo actual: --</p>
+                    <label for="station-4-select">Seleccionar equipo</label>
+                    <select id="station-4-select" class="team-select"></select>
+                    <button class="primary-btn assign-btn">Asignar equipo</button>
+                    <label for="station-4-score">Agregar puntaje</label>
+                    <div class="score-input">
+                        <input id="station-4-score" class="score-value" type="number" min="0" placeholder="Ej: 10">
+                        <button class="secondary-btn score-btn">Sumar puntaje</button>
+                    </div>
+                </article>
+
+                <article class="station-card" data-station="Estación 5">
+                    <header>Estación 5</header>
+                    <p class="current-team">Equipo actual: --</p>
+                    <label for="station-5-select">Seleccionar equipo</label>
+                    <select id="station-5-select" class="team-select"></select>
+                    <button class="primary-btn assign-btn">Asignar equipo</button>
+                    <label for="station-5-score">Agregar puntaje</label>
+                    <div class="score-input">
+                        <input id="station-5-score" class="score-value" type="number" min="0" placeholder="Ej: 10">
+                        <button class="secondary-btn score-btn">Sumar puntaje</button>
+                    </div>
+                </article>
+
+                <article class="station-card" data-station="Estación 6">
+                    <header>Estación 6</header>
+                    <p class="current-team">Equipo actual: --</p>
+                    <label for="station-6-select">Seleccionar equipo</label>
+                    <select id="station-6-select" class="team-select"></select>
+                    <button class="primary-btn assign-btn">Asignar equipo</button>
+                    <label for="station-6-score">Agregar puntaje</label>
+                    <div class="score-input">
+                        <input id="station-6-score" class="score-value" type="number" min="0" placeholder="Ej: 10">
+                        <button class="secondary-btn score-btn">Sumar puntaje</button>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="panel scoreboard-panel">
+            <h2>Tabla de Clasificación</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Posición</th>
+                        <th>Equipo</th>
+                        <th>Puntaje</th>
+                    </tr>
+                </thead>
+                <tbody id="scoreboard-body"></tbody>
+            </table>
+            <div class="events">
+                <h3>Últimos puntajes</h3>
+                <ul id="event-feed"></ul>
+            </div>
+            <div class="social-link">
+                <span>Sigue el proyecto en </span>
+                <a href="https://www.instagram.com/ubeda_alex_/" target="_blank">@ubeda_alex_</a>
+            </div>
+        </section>
     </div>
 
-    <!-- Texto con enlace a Instagram -->
-    <div class="background-text">
-        <a href="https://www.instagram.com/ubeda_alex_" target="_blank">@ubeda_alex_</a>
+    <div class="audio-container">
+        <audio id="audioPlayer" preload="auto">
+            <source id="audioSource" type="audio/mp3">
+        </audio>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
+
+    <div id="podium-overlay" class="podium-overlay">
+        <div class="podium-container">
+            <h2 class="podium-title">¡Ganadores del Rally!</h2>
+            <div class="podium">
+                <div class="place second">
+                    <h3 id="second-team">Segundo Lugar</h3>
+                    <span id="second-score"></span>
+                </div>
+                <div class="place first">
+                    <h3 id="first-team">Primer Lugar</h3>
+                    <span id="first-score"></span>
+                </div>
+                <div class="place third">
+                    <h3 id="third-team">Tercer Lugar</h3>
+                    <span id="third-score"></span>
+                </div>
+            </div>
+            <button id="close-podium" class="close-podium">Cerrar</button>
+        </div>
     </div>
 
     <script>
-        let timerInterval; // Variable para almacenar la referencia al intervalo del temporizador
-        let seconds = 0; // Inicializar los segundos
+        const TEAM_COLORS = ["Rojo", "Azul", "Blanco", "Negro", "Verde", "Morado"];
+        const STATIONS = [
+            "Estación 1",
+            "Estación 2",
+            "Estación 3",
+            "Estación 4",
+            "Estación 5",
+            "Estación 6"
+        ];
+
+        let timerInterval;
+        let seconds = 0;
+        let podiumDisplayed = false;
+        let podiumDismissed = false;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            populateSelectors();
+            registerStationActions();
+            document.getElementById("close-podium").addEventListener("click", hidePodium);
+            loadState();
+            setInterval(loadState, 5000);
+        });
+
+        function populateSelectors() {
+            const selects = document.querySelectorAll('.team-select');
+            selects.forEach(select => {
+                select.innerHTML = '<option value="">Selecciona un equipo</option>';
+                TEAM_COLORS.forEach(color => {
+                    const option = document.createElement('option');
+                    option.value = color;
+                    option.textContent = color;
+                    select.appendChild(option);
+                });
+            });
+        }
+
+        function registerStationActions() {
+            document.querySelectorAll('.station-card').forEach(card => {
+                const stationName = card.dataset.station;
+                const assignButton = card.querySelector('.assign-btn');
+                const scoreButton = card.querySelector('.score-btn');
+
+                assignButton.addEventListener('click', () => assignTeam(stationName, card));
+                scoreButton.addEventListener('click', () => submitScore(stationName, card));
+            });
+        }
+
+        function assignTeam(station, card) {
+            const select = card.querySelector('.team-select');
+            const team = select.value;
+
+            if (!team) {
+                return showFeedback('Selecciona un equipo para asignar.', 'error');
+            }
+
+            fetch('/assign_station', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ station, team })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showFeedback(data.error, 'error');
+                        return;
+                    }
+                    showFeedback(`Equipo ${team} asignado a ${station}.`, 'success');
+                    updateUIFromState(data.state);
+                })
+                .catch(error => console.error('Error asignando equipo:', error));
+        }
+
+        function submitScore(station, card) {
+            const team = card.dataset.currentTeam;
+            const input = card.querySelector('.score-value');
+            const score = input.value;
+
+            if (!team) {
+                showFeedback('Asigna un equipo antes de sumar puntaje.', 'error');
+                return;
+            }
+
+            if (score === '' || Number(score) < 0) {
+                showFeedback('Ingresa un puntaje válido.', 'error');
+                return;
+            }
+
+            fetch('/submit_score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ station, team, score })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showFeedback(data.error, 'error');
+                        return;
+                    }
+                    showFeedback(`+${score} puntos para ${team}.`, 'success');
+                    input.value = '';
+                    updateUIFromState(data.state);
+                })
+                .catch(error => console.error('Error enviando puntaje:', error));
+        }
+
+        function showFeedback(message, type) {
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = message;
+            feedback.className = `feedback show ${type}`;
+            setTimeout(() => feedback.classList.remove('show'), 2800);
+        }
+
+        function loadState() {
+            fetch('/state')
+                .then(response => response.json())
+                .then(data => updateUIFromState(data))
+                .catch(error => console.error('Error cargando el estado:', error));
+        }
+
+        function updateUIFromState(data) {
+            if (!data) return;
+
+            document.getElementById('status').innerText = `Estado: ${formatearEstado(data.status)}`;
+
+            if (data.status !== 'en_juego') {
+                stopTimer();
+            }
+
+            updateAssignments(data.assignments || {});
+            updateScoreboard(data.standings || []);
+            updateEventFeed(data.events || []);
+            togglePodium(data.standings || [], data.status);
+        }
+
+        function updateAssignments(assignments) {
+            document.querySelectorAll('.station-card').forEach(card => {
+                const stationName = card.dataset.station;
+                const currentTeam = assignments[stationName] || '';
+                const currentLabel = card.querySelector('.current-team');
+                const select = card.querySelector('.team-select');
+
+                card.dataset.currentTeam = currentTeam;
+                currentLabel.textContent = currentTeam ? `Equipo actual: ${currentTeam}` : 'Equipo actual: --';
+                select.value = currentTeam || '';
+            });
+        }
+
+        function updateScoreboard(standings) {
+            const tbody = document.getElementById('scoreboard-body');
+            tbody.innerHTML = '';
+
+            if (!standings.length) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="3">Sin puntajes registrados todavía.</td>';
+                tbody.appendChild(row);
+                return;
+            }
+
+            standings.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="rank">${index + 1}º</td>
+                    <td>${item.team}</td>
+                    <td>${item.score}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateEventFeed(events) {
+            const feed = document.getElementById('event-feed');
+            feed.innerHTML = '';
+
+            if (!events.length) {
+                const empty = document.createElement('li');
+                empty.textContent = 'No hay registros todavía.';
+                feed.appendChild(empty);
+                return;
+            }
+
+            events.slice().reverse().forEach(event => {
+                const item = document.createElement('li');
+                item.innerHTML = `
+                    <strong>${event.team}</strong> ganó <strong>+${event.score}</strong> pts en ${event.station}
+                    <span>${event.timestamp} · Total: ${event.total}</span>
+                `;
+                feed.appendChild(item);
+            });
+        }
+
+        function togglePodium(standings, status) {
+            const overlay = document.getElementById('podium-overlay');
+            if (status === 'terminado' && standings.length && !podiumDismissed) {
+                const topThree = standings.slice(0, 3);
+                renderPodium(topThree);
+                overlay.classList.add('visible');
+                podiumDisplayed = true;
+            } else if (podiumDisplayed && status !== 'terminado') {
+                overlay.classList.remove('visible');
+                podiumDisplayed = false;
+            }
+        }
+
+        function renderPodium(topThree) {
+            const first = topThree[0];
+            const second = topThree[1];
+            const third = topThree[2];
+
+            const firstTeam = document.getElementById('first-team');
+            const firstScore = document.getElementById('first-score');
+            const secondTeam = document.getElementById('second-team');
+            const secondScore = document.getElementById('second-score');
+            const thirdTeam = document.getElementById('third-team');
+            const thirdScore = document.getElementById('third-score');
+
+            if (first) {
+                firstTeam.textContent = `🥇 ${first.team}`;
+                firstScore.textContent = `${first.score} puntos`;
+            } else {
+                firstTeam.textContent = 'Primer Lugar';
+                firstScore.textContent = '';
+            }
+
+            if (second) {
+                secondTeam.textContent = `🥈 ${second.team}`;
+                secondScore.textContent = `${second.score} puntos`;
+            } else {
+                secondTeam.textContent = 'Segundo Lugar';
+                secondScore.textContent = '';
+            }
+
+            if (third) {
+                thirdTeam.textContent = `🥉 ${third.team}`;
+                thirdScore.textContent = `${third.score} puntos`;
+            } else {
+                thirdTeam.textContent = 'Tercer Lugar';
+                thirdScore.textContent = '';
+            }
+        }
+
+        function hidePodium() {
+            const overlay = document.getElementById('podium-overlay');
+            overlay.classList.remove('visible');
+            podiumDismissed = true;
+            podiumDisplayed = false;
+        }
+
+        function formatearEstado(status) {
+            if (status === 'en_juego') return 'En Juego';
+            if (status === 'terminado') return 'Finalizado';
+            return 'En Espera';
+        }
 
         function updateTimer() {
             seconds++;
-            let minutes = Math.floor(seconds / 60);
-            let remainingSeconds = seconds % 60;
-            document.getElementById("timer").innerText = `Tiempo: ${formatTime(minutes)}:${formatTime(remainingSeconds)}`;
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            document.getElementById('timer').innerText = `Tiempo: ${formatTime(minutes)}:${formatTime(remainingSeconds)}`;
         }
 
         function formatTime(time) {
@@ -201,46 +900,48 @@
             fetch(`/${action}`)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById("status").innerText = "Estado: " + data.status;
-
-                    // Determinar qué música reproducir según la acción
-                    let audioSource = document.getElementById("audioSource");
-                    let audioPlayer = document.getElementById("audioPlayer");
-
-                    if (action === 'play_waiting') {
-                        audioSource.src = '/sounds/espera.mp3'; // Música de espera
-                    } else if (action === 'start_game') {
-                        audioSource.src = '/sounds/inicio.mp3'; // Música de inicio
-                        startTimer(); // Iniciar el temporizador al comenzar el juego
-                    } else if (action === 'end_game') {
-                        audioSource.src = '/sounds/fin.mp3'; // Música de finalización
-                        stopTimer(); // Detener el temporizador al finalizar el juego
+                    if (data.state) {
+                        updateUIFromState(data.state);
+                    } else if (data.status) {
+                        document.getElementById('status').innerText = `Estado: ${data.status}`;
                     }
 
-                    // Reproducir el audio
-                    audioPlayer.load();  // Cargar el archivo de audio
-                    audioPlayer.play();  // Reproducir el archivo
+                    const audioSource = document.getElementById('audioSource');
+                    const audioPlayer = document.getElementById('audioPlayer');
+
+                    if (action === 'play_waiting') {
+                        audioSource.src = '/sounds/espera.mp3';
+                        stopTimer();
+                    } else if (action === 'start_game') {
+                        audioSource.src = '/sounds/inicio.mp3';
+                        startTimer();
+                        hidePodium();
+                        podiumDisplayed = false;
+                        podiumDismissed = false;
+                    } else if (action === 'end_game') {
+                        audioSource.src = '/sounds/fin.mp3';
+                        stopTimer();
+                    }
+
+                    audioPlayer.load();
+                    audioPlayer.play();
                 })
-                .catch(error => console.error("Error:", error));
+                .catch(error => console.error('Error:', error));
         }
 
         function startTimer() {
-            // Si ya hay un temporizador corriendo, no crear uno nuevo
             if (timerInterval) return;
-
-            timerInterval = setInterval(updateTimer, 1000); // Actualiza cada segundo
-            seconds = 0; // Reiniciar el contador de segundos
-            document.getElementById("timer").innerText = `Tiempo: 00:00`; // Actualizar el temporizador visual
-        
+            seconds = 0;
+            document.getElementById('timer').innerText = 'Tiempo: 00:00';
+            timerInterval = setInterval(updateTimer, 1000);
         }
 
         function stopTimer() {
-            clearInterval(timerInterval); // Detener el temporizador
+            clearInterval(timerInterval);
             timerInterval = null;
-            seconds = 0; // Reiniciar el contador de segundos
-            document.getElementById("timer").innerText = `Tiempo: 00:00`; // Actualizar el temporizador visual
+            seconds = 0;
+            document.getElementById('timer').innerText = 'Tiempo: 00:00';
         }
-
     </script>
 </body>
 </html>
